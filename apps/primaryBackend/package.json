@@ -14,9 +14,13 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@docker/redis": "*",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "db": "*",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
   }
 }
