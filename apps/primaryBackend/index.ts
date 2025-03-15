@@ -2,51 +2,52 @@ import { prismaClient } from "db/client";
 import { redisClient } from "@docker/redis/client";
 import express from "express";
 import cors from "cors";
-import { authMiddleware } from "./middleware";
-/**
- * Tech wavy of handling CORS
- */
-function cors_(): any {
-  return (req: any, res: any, next: any) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    next();
-  };
-}
+import authMiddleware from "./middleware";
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = 8080;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow frontend
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // If using cookies or auth tokens
+  })
+);
+
 app.use(express.json());
 
 app.post("/project", authMiddleware, async (req, res) => {
+  console.log("Creating a new project");
   const { prompt } = req.body;
-  const userId = req.userId;
+  const userId = req.userId || "";
   // add logic to get the usefull name from the prompt
   const name = prompt.split(" ")[0];
   const descriptions = prompt.split("\n")[0];
   const project = await prismaClient.project.create({
     data: {
       name,
-      descriptions,
+      description: descriptions,
       userId,
     },
   });
   res.json({ project, projectId: project.id });
 });
 
-app.get("/project", authMiddleware, async (req, res) => {
+app.get("/projects", authMiddleware, async (req, res) => {
+  console.log("Getting all projects");
+  console.log(req.userId, "userId", "paramas are ", req.params);
   const { id } = req.params;
-  const project = await prismaClient.project.findUnique({
+  const project = await prismaClient.project.findMany({
     where: {
-      id: Number(id),
+      userId: "user_2uLKQyU5KkkOXyTttP89XQw7c9Q",
     },
   });
-  res.json(project);
+  console.log("Project", project);
+  res.json({ projects: project });
 });
 
-app.listen(prompt, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

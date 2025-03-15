@@ -1,11 +1,8 @@
 {
-  "name": "db",
+  "name": "worker",
   "module": "index.ts",
   "type": "module",
   "private": true,
-  "exports": {
-    "./client": "./index.ts"
-  },
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -13,7 +10,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0",
-    "prisma": "^6.5.0"
+    "openai": "^4.87.3"
   }
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from "react"
-import { GalleryVerticalEnd } from "lucide-react"
+import * as React from "react";
+import { GalleryVerticalEnd } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,7 @@ import {
   SidebarGroupLabel,
   SidebarSeparator,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 import { BACKEND_URL } from "@/config";
 import axios from "axios";
@@ -23,13 +23,13 @@ import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { SearchIcon } from "lucide-react";
-import Link from "next/link"
+import Link from "next/link";
 
 type Project = {
   id: string;
   description: string;
   createdAt: string;
-}
+};
 
 function useProjects() {
   const { getToken } = useAuth();
@@ -41,21 +41,43 @@ function useProjects() {
       if (!token) return;
       const response = await axios.get(`${BACKEND_URL}/projects`, {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      })
-      const projectsByDate = response.data.projects.reduce((acc: { [date: string]: Project[] }, project: Project) => {
-        const date = new Date(project.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        if (!acc[date]) {
-          acc[date] = [];
-        }
-        acc[date].push(project);
-        return acc;
-      }, {});
-      setProjects(projectsByDate);
-    })()
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // below code is not wroking as expected, need to fix it
+      // according to the below logic the structure of the projects will be like this
+      // {
+      //   "2022-02-02": [
+      //     {
+      //       "id": "1",
+      //       "description": "Project 1",
+      //       "createdAt": "2022-02-02T00:00:00.000Z"
+      //     }
+      //   ],
 
-  }, [getToken])
+      // am i storing the data in the correct format?
+      // where to check if the data is stored in the correct format?
+      // how to check if the data is stored in the correct format? its present in the browser console
+      const projects = response.data.projects || [];
+      console.log("Projects", projects);
+      const projectsByDate = projects.reduce(
+        (acc: { [date: string]: Project[] }, project: Project) => {
+          const date = new Date(project.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+          if (!acc[date]) {
+            acc[date] = [];
+          }
+          acc[date].push(project);
+          return acc;
+        },
+        {}
+      );
+      setProjects(projectsByDate);
+    })();
+  }, [getToken]);
 
   return projects;
 }
@@ -93,24 +115,49 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar text-teal-400">
                     <GalleryVerticalEnd className="size-4" />
                   </div>
-                  <p className="font-semibold text-center text-teal-400">No projects found</p>
+                  <p className="font-semibold text-center text-teal-400">
+                    No projects found
+                  </p>
                 </div>
               ) : (
-                Object.keys(projects).sort((a: string, b: string) => new Date(b).getTime() - new Date(a).getTime()).map((date, index) => (
-                  <SidebarMenuItem key={index}>
-                    <SidebarGroupLabel>{date}</SidebarGroupLabel>
-                    {projects[date].filter((project) => project.description.toLowerCase().includes(searchString.toLowerCase())).sort((a: Project, b: Project) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((project) => (
-                      <SidebarMenuButton asChild key={project.id} className="my-2 rounded-md">
-                        <Link
-                          href={`/project/${project.id}`}
-                        >
-                          <span className="">{project.description.length > 20 ? `${project.description.substring(0, 50)}...` : project.description}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    ))}
-                    <SidebarSeparator />
-                  </SidebarMenuItem>
-                )))}
+                Object.keys(projects)
+                  .sort(
+                    (a: string, b: string) =>
+                      new Date(b).getTime() - new Date(a).getTime()
+                  )
+                  .map((date, index) => (
+                    <SidebarMenuItem key={index}>
+                      <SidebarGroupLabel>{date}</SidebarGroupLabel>
+                      {projects[date]
+                        .filter((project) =>
+                          project.description
+                            .toLowerCase()
+                            .includes(searchString.toLowerCase())
+                        )
+                        .sort(
+                          (a: Project, b: Project) =>
+                            new Date(b.createdAt).getTime() -
+                            new Date(a.createdAt).getTime()
+                        )
+                        .map((project) => (
+                          <SidebarMenuButton
+                            asChild
+                            key={project.id}
+                            className="my-2 rounded-md"
+                          >
+                            <Link href={`/project/${project.id}`}>
+                              <span className="">
+                                {project.description.length > 20
+                                  ? `${project.description.substring(0, 50)}...`
+                                  : project.description}
+                              </span>
+                            </Link>
+                          </SidebarMenuButton>
+                        ))}
+                      <SidebarSeparator />
+                    </SidebarMenuItem>
+                  ))
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -127,6 +174,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
-
