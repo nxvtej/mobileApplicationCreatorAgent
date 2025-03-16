@@ -126,6 +126,10 @@
     "apps/worker": {
       "name": "worker",
       "dependencies": {
+        "@types/express": "^5.0.0",
+        "axios": "^1.8.3",
+        "cors": "^2.8.5",
+        "express": "^4.21.2",
         "openai": "^4.87.3",
       },
       "devDependencies": {
