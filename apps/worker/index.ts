@@ -62,20 +62,18 @@ app.post("/prompt", async (req, res) => {
           };
         }),
       ],
-      stream: true,
+      stream: false,
     });
     console.log("stream", stream);
-    for await (const response of stream) {
-      const text = response.choices[0]?.delta?.content || "";
-      artifactProcessor.append(text);
-      artifactProcessor.parse();
-      artifact += text;
-    }
+    const text = stream.choices[0]?.message?.content || "";
+    artifactProcessor.append(text);
+    artifactProcessor.parse();
+    artifact += text;
   } catch (error) {
     console.log(error);
   }
 
-  console.log("artifact", artifact);
+  console.log("artifact", artifact.length);
   res.json({ artifact });
 });
 
