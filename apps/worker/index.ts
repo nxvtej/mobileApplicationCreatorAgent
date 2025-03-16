@@ -13,19 +13,24 @@ app.use(cors());
 
 app.post("/prompt", async (req, res) => {
   const { prompt, projectId } = req.body;
+  console.log("prompt", prompt);
+  console.log("projectId", projectId);
   const client = new OpenAI({
     apiKey: "Navdeep_IntegrationGLS",
     baseURL: "https://llm-proxy.internal.cleartax.co/openai/v1",
   });
 
-  await prismaClient.prompt.create({
-    data: {
-      content: prompt,
-      projectId: projectId,
-      type: "USER",
-    },
-  });
-
+  try {
+    await prismaClient.prompt.create({
+      data: {
+        content: prompt,
+        projectId: projectId,
+        type: "USER",
+      },
+    });
+  } catch (error) {
+    console.log("inside the prism ere", error);
+  }
   const allPrompt = await prismaClient.prompt.findMany({
     where: {
       projectId: projectId,
@@ -34,7 +39,7 @@ app.post("/prompt", async (req, res) => {
       createdAt: "asc",
     },
   });
-
+  console.log(allPrompt);
   let artifactProcessor = new ArtifactProcessor(
     "",
     onFileUpdate,
@@ -45,15 +50,21 @@ app.post("/prompt", async (req, res) => {
     //   forwared request to openai
     const stream = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: allPrompt.map((prompt) => {
-        return {
-          role: prompt.type.toLowerCase() as "user" | "system",
-          content: prompt.content,
-        };
-      }),
-      //   system: systemPrompt(project.type),
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt("REACT_NATIVE"),
+        },
+        ...allPrompt.map((prompt) => {
+          return {
+            role: prompt.type.toLowerCase() as "user" | "system",
+            content: prompt.content,
+          };
+        }),
+      ],
       stream: true,
     });
+    console.log("stream", stream);
     for await (const response of stream) {
       const text = response.choices[0]?.delta?.content || "";
       artifactProcessor.append(text);
@@ -63,6 +74,9 @@ app.post("/prompt", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+
+  console.log("artifact", artifact);
+  res.json({ artifact });
 });
 
 app.listen(9091, () => {

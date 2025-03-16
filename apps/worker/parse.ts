@@ -1,3 +1,6 @@
+import { file } from "bun";
+import { onFileUpdate, onShellCommand } from "./os";
+
 /*
     <boltArtifact>
         <boltAction type="shell">
@@ -15,8 +18,8 @@ export class ArtifactProcessor {
 
   constructor(
     currentArtifact: string,
-    onFileUpdate: (filePath: string, fileContent: string) => void,
-    onShellCommand: (shellCommand: string) => void
+    onFileUpdates: (filePath: string, fileContent: string) => void,
+    onShellCommands: (shellCommand: string) => void
   ) {
     this.currentArtifact = currentArtifact;
     this.onFileUpdate = onFileUpdate;
@@ -59,6 +62,7 @@ export class ArtifactProcessor {
           shellCommand = shellCommand.split("</boltAction>")[0];
           this.currentArtifact =
             this.currentArtifact.split(latestActionContent)[1];
+          console.log("shellCommand", shellCommand);
           this.onShellCommand(shellCommand);
         }
       } else if (latestActionType === '"file"') {
@@ -70,8 +74,10 @@ export class ArtifactProcessor {
 
         if (fileContent.includes("</boltAction>")) {
           fileContent = fileContent.split("</boltAction>")[0];
+
           this.currentArtifact =
             this.currentArtifact.split(latestActionContent)[1];
+          console.log("filePath", filePath);
           this.onFileUpdate(filePath.split('"')[1], fileContent);
         }
       }

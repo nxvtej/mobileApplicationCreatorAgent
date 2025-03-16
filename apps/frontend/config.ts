@@ -1,5 +1,5 @@
 export const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8085";
 // TODO: This should come from the router when we add it eventually
 
 export const K8S_ORCHESTRATOR_URL =

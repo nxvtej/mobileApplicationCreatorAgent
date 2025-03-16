@@ -1,4 +1,4 @@
-const BASE_WORKER_DIR = process.env.BASE_WORKER_DIR || "/tmp/aiagent-worker";
+const BASE_WORKER_DIR = "/tmp/aiagent-worker";
 if (!Bun.file(BASE_WORKER_DIR).exists()) {
   Bun.write(BASE_WORKER_DIR, ""); // dir create
 }
