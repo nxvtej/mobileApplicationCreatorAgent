@@ -4,6 +4,7 @@ if (!Bun.file(BASE_WORKER_DIR).exists()) {
 }
 
 export async function onFileUpdate(filePath: string, fileContent: string) {
+  console.log("writing file: ", `${BASE_WORKER_DIR}/${filePath}`);
   await Bun.write(`${BASE_WORKER_DIR}/${filePath}`, fileContent);
 }
 

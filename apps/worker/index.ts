@@ -62,18 +62,28 @@ app.post("/prompt", async (req, res) => {
           };
         }),
       ],
-      stream: false,
+      stream: true,
     });
     console.log("stream", stream);
-    const text = stream.choices[0]?.message?.content || "";
-    artifactProcessor.append(text);
-    artifactProcessor.parse();
-    artifact += text;
+
+    for await (const strm of stream) {
+      const text = strm.choices[0]?.delta?.content || "";
+      artifactProcessor.append(text);
+      artifactProcessor.parse();
+      artifact += text;
+    }
   } catch (error) {
     console.log(error);
   }
 
-  console.log("artifact", artifact.length);
+  await prismaClient.prompt.create({
+    data: {
+      content: artifact,
+      projectId,
+      type: "SYSTEM",
+    },
+  });
+  console.log("artifact", artifact);
   res.json({ artifact });
 });
 
